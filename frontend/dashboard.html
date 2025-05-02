@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>User Activity Overview</h2>
+  <canvas id="usageChart" width="600" height="300"></canvas>
+
+  <script>
+    async function loadStats() {
+      const res = await fetch('/admin/stats');
+      const data = await res.json();
+      const ctx = document.getElementById('usageChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: 'Messages per Day',
+            data: data.values,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)'
+          }]
+        }
+      });
+    }
+    loadStats();
+  </script>
+</body>
+</html>

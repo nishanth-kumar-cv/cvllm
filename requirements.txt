@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+langchain
+transformers
+sentence-transformers
+pydantic
+httpx
+pytest
+pdfminer.six
+pandas

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+.venv
+
+# Rust
+target/
+Cargo.lock
+
+# Data and Logs
+data/tokenized.jsonl
+*.log
+*.tmp
+
+# Environment and Secrets
+.env
+*.secret
+
+# Jupyter
+.ipynb_checkpoints
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
+
+# VSCode and OS
+.vscode/
+.DS_Store

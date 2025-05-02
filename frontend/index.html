@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Chatbot</title>
+  <style>
+    body { font-family: Arial; margin: 0; padding: 0; background: #f9f9f9; }
+    #chat { height: 80vh; overflow-y: auto; padding: 1rem; border-bottom: 1px solid #ccc; }
+    .bubble { margin: 0.5rem 0; padding: 0.75rem; border-radius: 0.5rem; max-width: 75%; }
+    .user { background: #cfe3ff; align-self: flex-end; }
+    .bot { background: #e1f4e8; align-self: flex-start; }
+    #input-area { display: flex; padding: 1rem; }
+    #message { flex: 1; padding: 0.5rem; font-size: 1rem; }
+    #send { padding: 0.5rem 1rem; font-size: 1rem; }
+    #chatbox { display: flex; flex-direction: column; }
+  </style>
+</head>
+<body>
+  <div id="chatbox">
+    <div id="chat"></div>
+    <div id="input-area">
+      <input type="text" id="message" placeholder="Ask something...">
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('message');
+    const sendBtn = document.getElementById('send');
+
+    function appendMessage(text, cls) {
+      const msg = document.createElement('div');
+      msg.className = `bubble ${cls}`;
+      msg.innerText = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const msg = input.value.trim();
+      if (!msg) return;
+      appendMessage(msg, 'user');
+      input.value = '';
+
+      const res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: msg })
+      });
+
+      const data = await res.json();
+      appendMessage(data.response, 'bot');
+    }
+
+    sendBtn.onclick = sendMessage;
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>

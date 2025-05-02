@@ -1,0 +1,28 @@
+{
+  "name": "Mistral Finetune Dev",
+  "dockerFile": "../Dockerfile",
+  "context": "..",
+  "remoteUser": "root",
+  "runArgs": ["--gpus", "all"],
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "ms-python.python",
+        "rust-lang.rust-analyzer",
+        "ms-azuretools.vscode-docker",
+        "hashicorp.terraform"
+      ]
+    }
+  },
+  "postCreateCommand": "pip install -r python_finetune/requirements.txt",
+  "postStartCommand": "nvidia-smi || echo 'GPU not found – ensure NVIDIA runtime is installed and --gpus all is available'"
+}

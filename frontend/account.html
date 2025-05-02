@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Chat History</title>
+</head>
+<body>
+  <h2>Session History</h2>
+  <div id="sessions"></div>
+
+  <script>
+    async function loadSessions() {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/sessions', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      const div = document.getElementById('sessions');
+      data.forEach(session => {
+        const block = document.createElement('pre');
+        block.innerText = JSON.stringify(session, null, 2);
+        div.appendChild(block);
+      });
+    }
+    loadSessions();
+  </script>
+</body>
+</html>
