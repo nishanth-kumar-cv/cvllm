@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from sqlmodel import Session, select
-from models import User
+from python_finetune.models import User
 
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"

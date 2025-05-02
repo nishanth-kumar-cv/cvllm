@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel, create_engine, Session
-from routes import auth_routes
+from python_finetune.api_routes import auth_routes
 from infer_api import app as infer_app
 from upload_endpoint import app as upload_app
+
 
 DATABASE_URL = "postgresql://mistral:mistral123@db:5432/chat"
 engine = create_engine(DATABASE_URL)

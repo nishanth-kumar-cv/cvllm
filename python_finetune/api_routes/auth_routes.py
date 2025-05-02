@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-from models import User
-from auth_jwt import get_password_hash, verify_password, create_access_token
+from python_finetune.models import User
+from python_finetune.auth_jwt import get_password_hash, verify_password, create_access_token
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 

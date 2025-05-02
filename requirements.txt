@@ -1,10 +1,32 @@
-fastapi
-uvicorn
-langchain
-transformers
-sentence-transformers
-pydantic
-httpx
-pytest
-pdfminer.six
-pandas
+# Core LLM stack
+transformers==4.39.3
+langchain==0.1.14
+langchain-community==0.0.30
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+peft==0.10.0
+
+# FastAPI backend
+fastapi==0.110.0
+uvicorn==0.29.0
+httpx==0.27.0
+sqlmodel==0.0.16
+pydantic==1.10.14
+python-jose==3.3.0
+passlib[bcrypt]==1.7.4
+datasets
+huggingface_hub
+protobuf
+accelerate
+
+# File parsing + tools
+pdfminer.six==20221105
+pandas==1.5.3
+
+# Plotting
+plotly==5.21.0
+
+# Model serving
+torch>= 2.2.0
+gradio==3.50.2
+accelerate==0.28.0
