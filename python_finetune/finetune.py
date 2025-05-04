@@ -1,12 +1,17 @@
+import os
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from peft import get_peft_model, LoraConfig, TaskType
 from datasets import Dataset
 import torch
 from huggingface_hub import HfFolder
-import os
 from transformers import BitsAndBytesConfig
 
+print("BNB cache dir:", os.environ.get("BITSANDBYTES_CUDA_SETUP_DIR"))
+
 hf_token = os.getenv("HF_TOKEN")
+
+os.environ["LD_LIBRARY_PATH"] = "/usr/local/cuda/lib64"
+
 if hf_token:
     HfFolder.save_token(hf_token)
 else:
@@ -16,6 +21,8 @@ else:
 model_id = "mistralai/Mistral-7B-Instruct-v0.3"
 tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
+
+
 
 quant_config = BitsAndBytesConfig(
     load_in_4bit=True,
@@ -32,6 +39,8 @@ model = AutoModelForCausalLM.from_pretrained(
     use_auth_token=hf_token
 )
 
+model.config.pad_token_id = tokenizer.pad_token_id
+
 # PEFT config for QLoRA
 peft_config = LoraConfig(
     r=64,
@@ -40,6 +49,18 @@ peft_config = LoraConfig(
     bias="none",
     task_type=TaskType.CAUSAL_LM
 )
+
+def preprocess_function(examples):
+    tokenized = tokenizer(
+        examples["text"],
+        padding="max_length",
+        truncation=True,
+        max_length=256,
+        return_tensors="pt"  # ensures uniform tensor shapes
+    )
+    tokenized["labels"] = tokenized["input_ids"].clone()
+    return {k: v.tolist() for k, v in tokenized.items()}
+
 
 # Step 2: Prepare toy training data (replace with real data later)
 raw_data = [
@@ -52,7 +73,7 @@ def tokenize(example):
     return tokenizer(example["text"], truncation=True, padding="max_length", max_length=256)
 
 dataset = Dataset.from_list(raw_data)
-tokenized_dataset = dataset.map(tokenize)
+tokenized_dataset = dataset.map(preprocess_function, batched=True)
 
 model = get_peft_model(model, peft_config)
 

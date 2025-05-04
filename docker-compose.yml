@@ -6,7 +6,6 @@ services:
       context: .
       args:
         HF_TOKEN: ${HF_TOKEN}
-    container_name: cvllm
     ports:
       - "8000:8000"
     volumes:
@@ -25,10 +24,10 @@ services:
       - PYTHONPATH=/app
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HF_TOKEN=${HF_TOKEN}
 
   frontend:
     image: nginx:alpine
-    container_name: cvllm
     ports:
       - "80:80"
     volumes:

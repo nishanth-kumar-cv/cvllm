@@ -3,17 +3,30 @@ from pydantic import BaseModel
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from python_finetune.load_faiss import load_faiss_index
 import torch
 import os
 
 app = FastAPI()
 
-model = AutoModelForCausalLM.from_pretrained("./mistral-finetuned", device_map="auto")
-tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
-generator = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0)
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel, PeftConfig
+
+# Step 1: Load the base model
+base_model_name = "mistralai/Mistral-7B-Instruct-v0.3"
+model = AutoModelForCausalLM.from_pretrained(base_model_name, device_map="auto", offload_folder="/tmp/offload")
+tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+
+# Step 2: Load the adapter
+adapter_path = "./mistral-finetuned/checkpoint-1"
+model = PeftModel.from_pretrained(model, adapter_path,offload_folder="/tmp/offload", device_map="auto")
+
+generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
 embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-retriever = FAISS.load_local("faiss_store", embedding_model)
+#retriever = FAISS.load_local("faiss_store", embedding_model, allow_dangerous_deserialization=True)
+retriever = load_faiss_index("faiss_store_safe", embedding_model)
+docs = retriever.similarity_search("how to improve my sales for new shoe", k=3)
 
 class Prompt(BaseModel):
     text: str

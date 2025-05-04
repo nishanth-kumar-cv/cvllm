@@ -3,7 +3,6 @@ from sqlmodel import select, Session as DbSession
 from models import ChartConfig
 from auth_jwt import get_current_user
 from startup import engine
-from typing import Optional
 
 router = APIRouter()
 

@@ -1,64 +1,59 @@
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
-
-# Install system dependencies and clean up
-#RUN apt update && apt install -y \
-#    git curl build-essential python3 python3-pip python-is-python3 \
-#    && rm -rf /var/lib/apt/lists/*
-
-# Install Rust
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y && \
-    echo 'source $HOME/.cargo/env' >> /root/.bashrc
-ENV PATH="/root/.cargo/bin:$PATH"
-
-WORKDIR /app
-
-# Copy only requirement files first for caching
-COPY requirements.txt ./python_finetune/requirements.txt
-
-# Install dependencies
-RUN pip install --upgrade pip && \
-    pip install -r python_finetune/requirements.txt
-
-# Install system and CUDA dev dependencies required to build bitsandbytes
-# System packages required for building bitsandbytes
-#RUN apt update && \
-#    apt install -y --allow-change-held-packages \
-#    git cmake build-essential libnccl2 libnccl-dev python3-dev wget unzip
-
-
-# Clone and build bitsandbytes
-#RUN git clone https://github.com/TimDettmers/bitsandbytes.git /opt/bnb && \
-#    cd /opt/bnb && \
-#    python setup.py install
-
-# Install core dependencies
-#RUN pip install --default-timeout=100 --retries=10 --no-cache-dir \
-#      torch==2.2.2 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
-#    pip install --default-timeout=100 --retries=10 --no-cache-dir \ 
-#      bitsandbytes==0.42.0 accelerate transformers peft datasets protobuf huggingface_hub
-
-# Install CUDA 11 runtime compatibility libs for bitsandbytes
-#RUN apt update && \
-#    apt install -y --allow-change-held-packages \
-#    cuda-cudart-11-0
-
-# Symlink libcudart for compatibility with bitsandbytes
-
-
-RUN pip install bitsandbytes-cuda113
-
-# Copy the entire app
-COPY . .
-
-# Build Rust components
-# WORKDIR /app/rust_preprocessing
-# RUN cargo build --release
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+#FROM nvidia/cuda:12.4.1-base-ubuntu22.04
 
 ARG HF_TOKEN
-ENV HF_TOKEN=$HF_TOKEN
+ENV HF_TOKEN=${HF_TOKEN}
 
-RUN python python_finetune/finetune.py
+# Base dependencies
+RUN apt update && apt install -y \
+    git curl build-essential python3 python3-pip python-is-python3 \
+    python3-dev cmake wget unzip && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set working directory and default command
+RUN pip install --upgrade pip
+
+ENV PATH="/root/.cargo/bin:$PATH"
+ENV BNB_CUDA_VERSION=124
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV BITSANDBYTES_CUDA_SETUP_DIR=/tmp/bnb_cache
+
+# Install PyTorch and other packages
+RUN pip install --extra-index-url https://download.pytorch.org/whl/cu124 \
+    torch torchvision torchaudio
+
+# Set working directory
 WORKDIR /app
+
+# Copy your source code
+COPY . .
+
+RUN mkdir -p ~/.huggingface && \
+    echo "${HF_TOKEN}" > ~/.huggingface/token
+
+
+#RUN pip uninstall -y triton
+#RUN pip install git+https://github.com/openai/triton@main
+
+# Install bitsandbytes without C extensions (we'll supply .so files)
+#RUN pip install bitsandbytes==0.39.1 --no-binary bitsandbytes
+# Download the secured bitsandbytes wheel
+#RUN pip install --upgrade pip && \
+#    pip install "huggingface_hub" && \
+#    pip download --quiet --no-deps --pre --extra-index-url https://download.pytorch.org/whl/cu124 \
+#       --trusted-host huggingface.co \
+#        --no-cache-dir \
+#        --dest /tmp \
+#        bitsandbytes==0.39.1 && \
+#    pip install /tmp/bitsandbytes-0.39.1*.whl
+RUN pip install bitsandbytes triton
+# Copy precompiled binaries (libbitsandbytes_cuda124.so + libbitsandbytes_cpu.so)
+COPY bitsandbytes/libbitsandbytes_cuda124.so /usr/local/lib/python3.10/dist-packages/bitsandbytes/libbitsandbytes_cuda124.so
+#COPY bitsandbytes/bitsandbytes/libbitsandbytes_cpu.so /usr/local/lib/python3.10/dist-packages/bitsandbytes/libbitsandbytes_cpu.so
+RUN mkdir -p /tmp/offload
+
+COPY requirements.txt python_finetune/requirements.txt
+COPY mistral-finetuned python_finetune/.
+# Install app dependencies
+RUN pip install -r python_finetune/requirements.txt
+
 CMD ["uvicorn", "python_finetune.startup:app", "--host", "0.0.0.0", "--port", "8000"]

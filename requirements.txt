@@ -1,23 +1,25 @@
 # Core LLM stack
-transformers==4.39.3
+transformers
 langchain==0.1.14
 langchain-community==0.0.30
-sentence-transformers==2.2.2
+sentence-transformers
+sentencepiece
 faiss-cpu==1.7.4
-peft==0.10.0
+peft
 
 # FastAPI backend
 fastapi==0.110.0
 uvicorn==0.29.0
 httpx==0.27.0
-sqlmodel==0.0.16
-pydantic==1.10.14
+sqlmodel
+pydantic
 python-jose==3.3.0
 passlib[bcrypt]==1.7.4
 datasets
 huggingface_hub
 protobuf
 accelerate
+
 
 # File parsing + tools
 pdfminer.six==20221105
@@ -29,4 +31,3 @@ plotly==5.21.0
 # Model serving
 torch>= 2.2.0
 gradio==3.50.2
-accelerate==0.28.0

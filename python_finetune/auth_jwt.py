@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from sqlmodel import Session, select
 from python_finetune.models import User
+from typing import Optional
 
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"

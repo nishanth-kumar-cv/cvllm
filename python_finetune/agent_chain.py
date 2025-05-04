@@ -5,6 +5,7 @@ from langchain.llms import HuggingFacePipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
+from python_finetune.load_faiss import load_faiss_index
 
 # Load Mistral model
 model = AutoModelForCausalLM.from_pretrained("./mistral-finetuned", device_map="auto")
@@ -14,7 +15,8 @@ llm = HuggingFacePipeline(pipeline=gen)
 
 # Retrieval Tool
 embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-vectorstore = FAISS.load_local("faiss_store", embedding)
+#vectorstore = FAISS.load_local("faiss_store", embedding, allow_dangerous_deserialization=True)
+vectorstore = load_faiss_index("faiss_store_safe", embedding)
 
 retriever_tool = Tool(
     name="Vector Search",
