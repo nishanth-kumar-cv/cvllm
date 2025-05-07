@@ -53,7 +53,10 @@ RUN mkdir -p /tmp/offload
 
 COPY requirements.txt python_finetune/requirements.txt
 COPY mistral-finetuned python_finetune/.
+COPY frontend/logo.png python_finetune/logo.png
+
+#COPY frontend/favicon.ico python_finetune/favicon.ico
 # Install app dependencies
 RUN pip install -r python_finetune/requirements.txt
-
+RUN python python_finetune/finetune.py
 CMD ["uvicorn", "python_finetune.startup:app", "--host", "0.0.0.0", "--port", "8000"]

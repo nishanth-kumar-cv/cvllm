@@ -5,6 +5,7 @@ langchain-community==0.0.30
 sentence-transformers
 sentencepiece
 faiss-cpu==1.7.4
+faiss-gpu
 peft
 
 # FastAPI backend
@@ -19,6 +20,7 @@ datasets
 huggingface_hub
 protobuf
 accelerate
+psycopg2-binary
 
 
 # File parsing + tools

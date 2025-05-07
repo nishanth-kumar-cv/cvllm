@@ -33,3 +33,9 @@ terraform.tfvars
 # VSCode and OS
 .vscode/
 .DS_Store
+
+# Model checkpoints
+*.safetensors
+
+# Faiss store safe
+faiss_store_safe/*

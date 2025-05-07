@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
-from utils.loader import parse_and_embed
+from python_finetune.utils.loader import parse_and_embed
 import os
 
 app = FastAPI()

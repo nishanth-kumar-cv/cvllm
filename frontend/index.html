@@ -1,63 +1,378 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RAG Chatbot</title>
-  <style>
-    body { font-family: Arial; margin: 0; padding: 0; background: #f9f9f9; }
-    #chat { height: 80vh; overflow-y: auto; padding: 1rem; border-bottom: 1px solid #ccc; }
-    .bubble { margin: 0.5rem 0; padding: 0.75rem; border-radius: 0.5rem; max-width: 75%; }
-    .user { background: #cfe3ff; align-self: flex-end; }
-    .bot { background: #e1f4e8; align-self: flex-start; }
-    #input-area { display: flex; padding: 1rem; }
-    #message { flex: 1; padding: 0.5rem; font-size: 1rem; }
-    #send { padding: 0.5rem 1rem; font-size: 1rem; }
-    #chatbox { display: flex; flex-direction: column; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CognitiveVideos AI Assistant</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f8fafc;
+            --chat-bg: #ffffff;
+            --user-bubble: #e0f2fe;
+            --bot-bubble: #f0fdf4;
+            --text-color: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            height: 40px;
+            width: auto;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: calc(100vh - 72px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--chat-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .bubble {
+            margin: 0.75rem 0;
+            padding: 1rem;
+            border-radius: 1rem;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-in-out;
+            position: relative;
+        }
+
+        .user {
+            background: var(--user-bubble);
+            margin-left: auto;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .bot {
+            background: var(--bot-bubble);
+            margin-right: auto;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .loading {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: #64748b;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        #input-area {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        #message {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #message:focus {
+            border-color: var(--primary-color);
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #send {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        #send:hover {
+            background: var(--secondary-color);
+        }
+
+        #upload {
+            background: #f1f5f9;
+            color: var(--text-color);
+        }
+
+        #upload:hover {
+            background: #e2e8f0;
+        }
+
+        .file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div id="chatbox">
-    <div id="chat"></div>
-    <div id="input-area">
-      <input type="text" id="message" placeholder="Ask something...">
-      <button id="send">Send</button>
+    <div class="header">
+        <img src="logo.png" alt="CognitiveVideos Logo" class="logo">
+        <h1>CognitiveVideos AI Assistant</h1>
     </div>
-  </div>
 
-  <script>
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('message');
-    const sendBtn = document.getElementById('send');
+    <div class="container">
+        <div id="chat"></div>
+        <div id="input-area">
+            <input type="text" id="message" placeholder="Ask something...">
+            <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt">
+            <button id="upload" class="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Upload
+            </button>
+            <button id="send" class="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                Send
+            </button>
+        </div>
+    </div>
 
-    function appendMessage(text, cls) {
-      const msg = document.createElement('div');
-      msg.className = `bubble ${cls}`;
-      msg.innerText = text;
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
-    }
+    <script>
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('message');
+        const sendBtn = document.getElementById('send');
+        const uploadBtn = document.getElementById('upload');
+        const fileInput = document.getElementById('file-input');
+        let currentFile = null;
+        let currentTaskId = null;
+        let progressInterval = null;
 
-    async function sendMessage() {
-      const msg = input.value.trim();
-      if (!msg) return;
-      appendMessage(msg, 'user');
-      input.value = '';
+        function appendMessage(text, cls, isFile = false) {
+            const msg = document.createElement('div');
+            msg.className = `bubble ${cls}`;
+            
+            if (isFile && currentFile) {
+                const filePreview = document.createElement('div');
+                if (currentFile.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(currentFile);
+                    img.className = 'file-preview';
+                    filePreview.appendChild(img);
+                } else {
+                    filePreview.textContent = `📎 ${currentFile.name}`;
+                }
+                msg.appendChild(filePreview);
+            }
+            
+            const textContent = document.createElement('div');
+            textContent.textContent = text;
+            msg.appendChild(textContent);
+            
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        }
 
-      const res = await fetch('/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: msg })
-      });
+        function showLoading() {
+            const loading = document.createElement('div');
+            loading.className = 'bubble bot loading';
+            loading.innerHTML = `
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span>Thinking...</span>
+            `;
+            chat.appendChild(loading);
+            chat.scrollTop = chat.scrollHeight;
+            return loading;
+        }
 
-      const data = await res.json();
-      appendMessage(data.response, 'bot');
-    }
+        function updateLoadingMessage(loadingElement, progress) {
+            const progressText = Math.round(progress * 100);
+            loadingElement.querySelector('span:last-child').textContent = `Processing... ${progressText}%`;
+        }
 
-    sendBtn.onclick = sendMessage;
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
-  </script>
+        async function checkProgress(taskId) {
+            try {
+                const res = await fetch(`/proxy/8000/generate/progress/${taskId}`);
+                const data = await res.json();
+                
+                if (data.status === 'completed') {
+                    clearInterval(progressInterval);
+                    return data.result;
+                } else if (data.status === 'error') {
+                    clearInterval(progressInterval);
+                    throw new Error(data.result);
+                }
+                
+                return null;
+            } catch (err) {
+                clearInterval(progressInterval);
+                throw err;
+            }
+        }
+
+        async function sendMessage() {
+            const msg = input.value.trim();
+            if (!msg && !currentFile) return;
+
+            appendMessage(msg, 'user', true);
+            input.value = '';
+            
+            const loadingElement = showLoading();
+
+            try {
+                let response;
+                if (currentFile) {
+                    // Handle file upload
+                    const formData = new FormData();
+                    formData.append('file', currentFile);
+                    if (msg) formData.append('text', msg);
+
+                    const uploadRes = await fetch('/proxy/8000/generate/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!uploadRes.ok) {
+                        throw new Error('Upload failed');
+                    }
+
+                    const uploadData = await uploadRes.json();
+                    currentTaskId = uploadData.task_id;
+                } else {
+                    // Handle text-only message
+                    const textRes = await fetch('/proxy/8000/generate/text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: msg })
+                    });
+
+                    if (!textRes.ok) {
+                        throw new Error('Request failed');
+                    }
+
+                    const textData = await textRes.json();
+                    currentTaskId = textData.task_id;
+                }
+
+                // Start progress checking
+                progressInterval = setInterval(async () => {
+                    try {
+                        const result = await checkProgress(currentTaskId);
+                        if (result) {
+                            clearInterval(progressInterval);
+                            loadingElement.remove();
+                            appendMessage(result, 'bot');
+                            currentFile = null;
+                        }
+                    } catch (err) {
+                        clearInterval(progressInterval);
+                        loadingElement.remove();
+                        appendMessage(`⚠️ Error: ${err.message}`, 'bot');
+                    }
+                }, 500);
+
+            } catch (err) {
+                loadingElement.remove();
+                appendMessage(`⚠️ Error: ${err.message}`, 'bot');
+            }
+        }
+
+        uploadBtn.onclick = () => fileInput.click();
+        
+        fileInput.onchange = (e) => {
+            currentFile = e.target.files[0];
+            if (currentFile) {
+                appendMessage(`Uploaded: ${currentFile.name}`, 'user', true);
+            }
+        };
+
+        sendBtn.onclick = sendMessage;
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 import os
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from peft import get_peft_model, LoraConfig, TaskType
-from datasets import Dataset
+from datasets import Dataset, load_dataset, concatenate_datasets
 import torch
 from huggingface_hub import HfFolder
 from transformers import BitsAndBytesConfig
@@ -62,18 +62,38 @@ def preprocess_function(examples):
     return {k: v.tolist() for k, v in tokenized.items()}
 
 
-# Step 2: Prepare toy training data (replace with real data later)
-raw_data = [
-    {"text": "What is the capital of France? Paris."},
-    {"text": "Translate 'hello' to Spanish. Hola."},
+# Step 2: Load and combine real datasets from rag_pipeline.py
+print("[INFO] Loading datasets from HuggingFace...")
+ds_mini_reasoning = load_dataset("KingNish/mini_reasoning_1k")['train']
+ds_finance_alpaca = load_dataset("gbharti/finance-alpaca")['train']
+ds_openai_mrcr = load_dataset("openai/mrcr")['train']
+ds_anthropic_economic_index = load_dataset("Anthropic/EconomicIndex")['train']
+ds_general_reasoning = load_dataset("GeneralReasoning/GeneralThought-430K")['train']
+ds_hf_ultrafeedback = load_dataset("HuggingFaceH4/ultrafeedback_binarized")['train_prefs']
+ds_zennykenny_finance = load_dataset("ZennyKenny/synthetic_vc_financial_decisions_reasoning_dataset")['test']
+
+all_datasets = [
+    ds_mini_reasoning,
+    ds_finance_alpaca,
+    ds_openai_mrcr,
+    ds_anthropic_economic_index,
+    ds_general_reasoning,
+    ds_hf_ultrafeedback,
+    ds_zennykenny_finance
 ]
 
-# Step 3: Tokenize the dataset
-def tokenize(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=256)
+combined = concatenate_datasets(all_datasets)
+print(f"[INFO] Combined dataset size: {len(combined)}")
 
-dataset = Dataset.from_list(raw_data)
-tokenized_dataset = dataset.map(preprocess_function, batched=True)
+def get_text(example):
+    return example.get("text") or example.get("prompt") or ""
+
+filtered = combined.filter(lambda x: (x.get("text") or x.get("prompt")) and (x.get("text") or x.get("prompt")).strip())
+filtered = filtered.map(lambda x: {"text": get_text(x)})
+
+# Step 3: Tokenize the dataset
+print("[INFO] Tokenizing dataset...")
+tokenized_dataset = filtered.map(preprocess_function, batched=True)
 
 model = get_peft_model(model, peft_config)
 

@@ -4,7 +4,7 @@ import os
 
 def save_faiss_index(index, documents, path):
     os.makedirs(path, exist_ok=True)
-    
+    print(f"[INFO] saving path {path}")
     # Save FAISS index
     faiss.write_index(index, os.path.join(path, "index.faiss"))
 
