@@ -1,35 +1,14 @@
-# Core LLM stack
-transformers
-langchain==0.1.14
-langchain-community==0.0.30
-sentence-transformers
-sentencepiece
-faiss-cpu==1.7.4
-faiss-gpu
-peft
-
-# FastAPI backend
-fastapi==0.110.0
-uvicorn==0.29.0
-httpx==0.27.0
-sqlmodel
-pydantic
+fastapi==0.109.2
+sqlmodel==0.0.14
+uvicorn==0.27.1
+python-multipart==0.0.9
+boto3==1.34.46
+botocore==1.34.46
+psycopg2-binary==2.9.9
+faiss-cpu==1.7.4  # Use faiss-gpu if GPU support is needed
 python-jose==3.3.0
-passlib[bcrypt]==1.7.4
-datasets
-huggingface_hub
-protobuf
-accelerate
-psycopg2-binary
-
-
-# File parsing + tools
-pdfminer.six==20221105
-pandas==1.5.3
-
-# Plotting
-plotly==5.21.0
-
-# Model serving
-torch>= 2.2.0
-gradio==3.50.2
+passlib==1.7.4
+python-dotenv==1.0.1
+requests==2.31.0
+pydantic==2.6.1
+aiofiles==23.2.1

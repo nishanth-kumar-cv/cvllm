@@ -8,8 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
+            --primary-color: #2af8c5;
+            --secondary-color: #4ad7b6;
             --background-color: #f8fafc;
             --chat-bg: #ffffff;
             --user-bubble: #e0f2fe;
@@ -75,6 +75,28 @@
             max-width: 80%;
             animation: fadeIn 0.3s ease-in-out;
             position: relative;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .bubble::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .bubble::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .bubble::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .bubble::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .user {
@@ -218,6 +240,7 @@
     </div>
 
     <script>
+        const BASE_URL = 'http://34.172.157.200:8000';
         const chat = document.getElementById('chat');
         const input = document.getElementById('message');
         const sendBtn = document.getElementById('send');
@@ -246,6 +269,7 @@
             
             const textContent = document.createElement('div');
             textContent.textContent = text;
+            textContent.style.width = '100%';
             msg.appendChild(textContent);
             
             chat.appendChild(msg);
@@ -275,12 +299,12 @@
 
         async function checkProgress(taskId) {
             try {
-                const res = await fetch(`/proxy/8000/generate/progress/${taskId}`);
+                const res = await fetch(`${BASE_URL}/generate/progress/${taskId}`);
                 const data = await res.json();
                 
                 if (data.status === 'completed') {
                     clearInterval(progressInterval);
-                    return data.result;
+                    return data.response || data.result?.output || data.result;
                 } else if (data.status === 'error') {
                     clearInterval(progressInterval);
                     throw new Error(data.result);
@@ -310,7 +334,7 @@
                     formData.append('file', currentFile);
                     if (msg) formData.append('text', msg);
 
-                    const uploadRes = await fetch('/proxy/8000/generate/upload', {
+                    const uploadRes = await fetch(`${BASE_URL}/generate/upload`, {
                         method: 'POST',
                         body: formData
                     });
@@ -323,7 +347,7 @@
                     currentTaskId = uploadData.task_id;
                 } else {
                     // Handle text-only message
-                    const textRes = await fetch('/proxy/8000/generate/text', {
+                    const textRes = await fetch(`${BASE_URL}/generate/text`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: msg })

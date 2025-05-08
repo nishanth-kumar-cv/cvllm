@@ -3,6 +3,7 @@ from sqlmodel import SQLModel, create_engine, Session
 from python_finetune.api_routes import auth_routes
 import os
 from python_finetune.rag_pipeline import build_faiss_index
+from fastapi.middleware.cors import CORSMiddleware
 if not os.path.exists("faiss_store_safe/index.faiss"):
     print("Index not found. Building FAISS index...")
     build_faiss_index()
@@ -17,7 +18,14 @@ engine = create_engine(DATABASE_URL)
 
 app = FastAPI()
 
-
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 app.include_router(auth_routes.router)
 app.include_router(infer_router, prefix="/generate")
